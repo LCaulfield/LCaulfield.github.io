@@ -66,7 +66,7 @@ function moduleStats(bank, prog, moduleKey){
            seen: seen, ok: ok, bad: bad, acc: seen ? (Math.round(ok/seen*100)+'%') : '–' };
 }
 
-// Expose (same names the app expects)
+// Expose globally (app.js expects these names)
 window.loadProgress = loadProgress;
 window.saveProgress = saveProgress;
 window.chooseNextQuestion = chooseNextQuestion;

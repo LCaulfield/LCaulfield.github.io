@@ -6,7 +6,7 @@ var LS_BANK = 'studyquiz/bank/v1';
 function on(sel, evt, fn) {
   var el = document.querySelector(sel);
   if (el) el.addEventListener(evt, fn);
-  return !!el; // returns true if attached
+  return !!el;
 }
 
 // State
@@ -240,11 +240,23 @@ $('#q-add').addEventListener('click',function(){
   $$('.q-choice').forEach(function(i){ i.value=''; });
 });
 
-// Module change & controls
-moduleSelect.addEventListener('change',function(){ moduleKey = moduleSelect.value; refreshKPI(); refreshModuleLists(); renderIdle(); });
-$('#start').addEventListener('click', startQuiz);
-$('#stop').addEventListener('click', stopQuiz);
-$('#target').addEventListener('change',function(){ target = Math.max(1, Math.min(100, parseInt(targetInput.value||'10',10))); refreshKPI(); });
+// Module change & controls (guarded)
+if (moduleSelect) {
+  moduleSelect.addEventListener('change', function () {
+    moduleKey = moduleSelect.value;
+    refreshKPI();
+    refreshModuleLists();
+    renderIdle();
+  });
+}
+
+// Use the safe listener helper `on()` you added earlier
+on('#start',  'click', startQuiz);
+on('#stop',   'click', stopQuiz);
+on('#target', 'change', function () {
+  target = Math.max(1, Math.min(100, parseInt(targetInput.value || '10', 10)));
+  refreshKPI();
+});
 
 // Init
 (async function init(){

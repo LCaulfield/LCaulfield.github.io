@@ -2,6 +2,12 @@
 var $ = function(sel){ return document.querySelector(sel); };
 var $$ = function(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); };
 var LS_BANK = 'studyquiz/bank/v1';
+// Safe listener helper (prevents null.addEventListener crashes)
+function on(sel, evt, fn) {
+  var el = document.querySelector(sel);
+  if (el) el.addEventListener(evt, fn);
+  return !!el; // returns true if attached
+}
 
 // State
 var bank = null; // { modules: { name: Question[] } }
@@ -159,27 +165,45 @@ function stopQuiz(){
 }
 window.stopQuiz = stopQuiz; // for rewards missPenalty()
 
-// Manage view wiring
+// Manage view wiring (safe listener version)
 var mModule = $('#m-module');
-var mJson = $('#m-json');
-$('#m-reset').addEventListener('click',function(){
-  if(confirm("Reset progress for '"+mModule.value+"'?")){
-    prog[mModule.value] = {}; saveProgress(prog); refreshKPI(); alert('Progress reset.');
+var mJson   = $('#m-json');
+
+// Reset progress
+on('#m-reset', 'click', function() {
+  if (confirm("Reset progress for '" + mModule.value + "'?")) {
+    prog[mModule.value] = {};
+    saveProgress(prog);
+    refreshKPI();
+    alert('Progress reset.');
   }
 });
-$('#m-export').addEventListener('click',function(){
-  var data = JSON.stringify(bank,null,2); mJson.value = data;
-  var blob=new Blob([data],{type:'application/json'});
-  var url=URL.createObjectURL(blob); var a=document.createElement('a');
-  a.href=url; a.download='study-bank.json'; a.click(); URL.revokeObjectURL(url);
+
+// Export question bank
+on('#m-export', 'click', function() {
+  var data = JSON.stringify(bank, null, 2);
+  mJson.value = data;
+  var blob = new Blob([data], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = 'study-bank.json';
+  a.click();
+  URL.revokeObjectURL(url);
 });
-$('#m-import').addEventListener('click',function(){
-  try{
-    var parsed=JSON.parse(mJson.value);
-    if(!parsed.modules) throw new Error('Missing modules');
-    bank=parsed; localStorage.setItem(LS_BANK, JSON.stringify(bank));
-    refreshModuleLists(); alert('Imported.');
-  }catch(e){ alert('Import failed: '+e.message); }
+
+// Import question bank
+on('#m-import', 'click', function() {
+  try {
+    var parsed = JSON.parse(mJson.value);
+    if (!parsed.modules) throw new Error('Missing modules');
+    bank = parsed;
+    localStorage.setItem(LS_BANK, JSON.stringify(bank));
+    refreshModuleLists();
+    alert('Imported.');
+  } catch (e) {
+    alert('Import failed: ' + e.message);
+  }
 });
 
 // Add Question form

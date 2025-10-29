@@ -1,5 +1,5 @@
 // Simple cache-first service worker
-const CACHE_NAME = 'studyquiz-cache-v1';
+const CACHE_NAME = 'studyquiz-cache-v2';
 const ASSETS = [
 './',
 './index.html',

@@ -60,15 +60,41 @@ async function loadBank(){
 }
 
 function refreshModuleLists(){
-  var keys = Object.keys(bank.modules);
-  if(!moduleKey) moduleKey = keys[0];
-  moduleSelect.innerHTML = keys.map(function(k){ return '<option>'+k+'</option>'; }).join('');
-  moduleSelect.value = moduleKey;
-  $('#m-module').innerHTML = keys.map(function(k){ return '<option>'+k+'</option>'; }).join('');
-  $('#m-module').value = moduleKey;
-  $('#q-module').innerHTML = keys.map(function(k){ return '<option>'+k+'</option>'; }).join('');
-  $('#q-module').value = moduleKey;
-  $('#q-count').textContent = 'Questions in ' + moduleKey + ': ' + ((bank.modules[moduleKey]||[]).length);
+  // Re-query DOM every time (more robust on Pages + iOS)
+  var moduleSelectEl = document.getElementById('module-select');
+  var mModuleEl      = document.getElementById('m-module');
+  var qModuleEl      = document.getElementById('q-module');
+  var qCountEl       = document.getElementById('q-count');
+
+  if (!moduleSelectEl || !mModuleEl || !qModuleEl || !qCountEl) {
+    console.warn('[refreshModuleLists] UI elements not found yet.');
+    return; // Prevents "Cannot set properties of null (setting 'innerHTML')"
+  }
+
+  if (moduleSelectEl) {
+  moduleSelectEl.addEventListener('change', function () {
+    moduleKey = moduleSelectEl.value;
+    refreshKPI();
+    refreshModuleLists();
+    renderIdle();
+  });
+}
+
+  var keys = Object.keys(bank.modules || {});
+  if (!keys.length) { console.warn('[refreshModuleLists] No modules in bank.'); return; }
+  if (!moduleKey) moduleKey = keys[0];
+
+  moduleSelectEl.innerHTML = keys.map(function(k){ return '<option>'+k+'</option>'; }).join('');
+  moduleSelectEl.value = moduleKey;
+
+  mModuleEl.innerHTML = keys.map(function(k){ return '<option>'+k+'</option>'; }).join('');
+  mModuleEl.value = moduleKey;
+
+  qModuleEl.innerHTML = keys.map(function(k){ return '<option>'+k+'</option>'; }).join('');
+  qModuleEl.value = moduleKey;
+
+  var count = (bank.modules[moduleKey] || []).length;
+  qCountEl.textContent = 'Questions in ' + moduleKey + ': ' + count;
 }
 
 function refreshKPI(){

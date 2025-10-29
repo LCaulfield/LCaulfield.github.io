@@ -1,0 +1,119 @@
+<!doctype html>
+
+
+<div id="panel" class="mt"></div>
+</section>
+
+
+<aside class="card">
+<div class="muted">Tips</div>
+<ul>
+<li>Wrong answers reset to <span class="mono">box 1</span> and reappear sooner.</li>
+<li>Correct answers move up a box (towards 5). Mastery = box ≥ 4.</li>
+<li>Progress and bank live in your browser (<span class="mono">localStorage</span>). Export regularly.</li>
+</ul>
+<div class="footer">Works offline after first load • Install via Share → Add to Home Screen</div>
+</aside>
+</main>
+
+
+<section id="view-manage" class="grid g2" style="display:none">
+<div class="card">
+<h3>Modules</h3>
+<div class="row wrap gap">
+<select id="m-module"></select>
+<button id="m-reset">Reset progress</button>
+<button id="m-export">Export bank</button>
+<label class="muted">Import JSON:</label>
+<button id="m-import">Apply</button>
+</div>
+<textarea id="m-json" rows="12" placeholder="Paste question bank JSON here…"></textarea>
+<div class="muted xsmall mt">Format: { modules: { "Module Name": [ { id, type:"mc"|"text", q, choices?, answer, altAnswers?, explanation? } ] } }</div>
+</div>
+
+
+<div class="card">
+<h3>Add Question</h3>
+<div class="grid two gap">
+<label>Type
+<select id="q-type"><option value="mc">Multiple choice</option><option value="text">Short text</option></select>
+</label>
+<label>Module
+<select id="q-module"></select>
+</label>
+</div>
+<label>Question <input id="q-q" class="w100" /></label>
+<div id="q-mc" class="grid two gap mt">
+<input class="q-choice" placeholder="Choice 1" />
+<input class="q-choice" placeholder="Choice 2" />
+<input class="q-choice" placeholder="Choice 3" />
+<input class="q-choice" placeholder="Choice 4" />
+<label class="two">Correct option (must match exactly) <input id="q-answer-mc" class="w100" /></label>
+</div>
+<div id="q-text" style="display:none" class="grid one mt">
+<label>Correct answer (canonical)
+<input id="q-answer-text" />
+</label>
+<label>Alternate answers (pipe‑separated)
+<input id="q-alt" placeholder="answer one|Answer One" />
+</label>
+</div>
+<label>Explanation (optional)
+<input id="q-expl" />
+</label>
+<div class="row end mt">
+<button id="q-add" class="primary">Add question</button>
+</div>
+<div class="muted" id="q-count"></div>
+</div>
+
+<div class="card mt">
+<h3>CSV Import</h3>
+<div class="grid two gap">
+<label>Target module
+<select id="csv-module"></select>
+</label>
+<label>Delimiter
+<select id="csv-delim">
+<option value=",">Comma (,)</option>
+<option value=";">Semicolon (;)</option>
+<option value="\t">Tab (\t)</option>
+</select>
+</label>
+</div>
+<textarea id="csv-input" rows="10" placeholder="type,q,choice1,choice2,choice3,choice4,answer,altAnswers,explanation\nmc,What does HTML stand for?,Hyperlink and Text Markup Language,HyperText Markup Language,Home Tool Markup Language,HighText Markdown Language,HyperText Markup Language,,HTML defines structure\ntext,Which HTML tag is the largest heading?,,,,,,<h1>,h1|<H1>,"></textarea>
+<div class="row end mt">
+<button id="csv-parse" class="primary">Convert & Append</button>
+</div>
+<div class="muted xsmall mt">Columns (header optional): <span class="mono">type,q,choice1,choice2,choice3,choice4,answer,altAnswers,explanation</span>.<br>
+– <span class="mono">type</span>: <b>mc</b> or <b>text</b> · <span class="mono">altAnswers</span>: pipe‑separated (e.g., <span class="mono">DNS|domain name system</span>)</div>
+</div>
+</section>
+
+
+<section id="view-about" style="display:none" class="card">
+<h3>How it works</h3>
+<ul>
+<li>Leitner-based scheduling (boxes 1–5) with weighted selection.
+<li>Rewards tuned for learning: XP (+10), streak → ×multiplier, 3 hearts/session, daily quest target.
+<li>Soft penalty on wrong (box reset + tiny delay) — no hard negative XP.</li>
+<li>Install as PWA: Share → Add to Home Screen (iPhone).</li>
+</ul>
+<p class="muted">All code is plain HTML/CSS/JS. No frameworks. Easy to extend (CSV import, hints, badges) later.</p>
+</section>
+</div>
+
+
+<script src="leitner.js"></script>
+<script src="rewards.js"></script>
+<script src="app.js"></script>
+<script>
+// Register service worker (PWA offline)
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', () => {
+navigator.serviceWorker.register('./sw.js');
+});
+}
+</script>
+</body>
+</html>

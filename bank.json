@@ -1,0 +1,16 @@
+{
+"modules": {
+"Module 1 — Foundations": [
+{ "id": "m1q1", "type": "mc", "q": "What does HTML stand for?", "choices": ["Hyperlink and Text Markup Language", "HyperText Markup Language", "Home Tool Markup Language", "HighText Markdown Language"], "answer": "HyperText Markup Language", "explanation": "HTML defines the structure of web pages." },
+{ "id": "m1q2", "type": "mc", "q": "Which language controls a web page’s visual presentation?", "choices": ["HTML", "CSS", "PHP", "SQL"], "answer": "CSS", "explanation": "CSS handles colours, layout, spacing, fonts." },
+{ "id": "m1q3", "type": "mc", "q": "JavaScript primarily runs on the…", "choices": ["Server", "Client (browser)", "Database", "Router"], "answer": "Client (browser)", "explanation": "Classic JS executes in the browser; frameworks can add server-side capabilities too." },
+{ "id": "m1q4", "type": "text", "q": "Name the system that maps domain names to IP addresses (3 letters).", "answer": "dns", "altAnswers": ["domain name system"], "explanation": "DNS resolves human-friendly names to numeric IP addresses." },
+{ "id": "m1q5", "type": "text", "q": "Which HTML tag represents the largest heading? (format like <h?>)", "answer": "<h1>", "altAnswers": ["h1", "<H1>"] },
+{ "id": "m1q6", "type": "mc", "q": "Best analogy: HTML, CSS, JavaScript are like…", "choices": ["House structure, interior design, electrics", "Paint, bricks, pipes", "Light switches, sofas, roof"], "answer": "House structure, interior design, electrics" },
+{ "id": "m1q7", "type": "text", "q": "What file extension does a stylesheet usually use?", "answer": ".css", "altAnswers": ["css"], "explanation": "Cascading Style Sheets typically use .css." },
+{ "id": "m1q8", "type": "mc", "q": "Which pair best describes front-end tech?", "choices": ["HTML & CSS", "PHP & SQL", "Python & Flask", "Nginx & Docker"], "answer": "HTML & CSS" },
+{ "id": "m1q9", "type": "text", "q": "In the box model, which layer is outermost?", "answer": "margin", "altAnswers": ["the margin"], "explanation": "Order: content → padding → border → margin." },
+{ "id": "m1q10", "type": "mc", "q": "A web server is best described as…", "choices": ["A design app", "A computer configured to host and serve site files", "A database", "An IP address"], "answer": "A computer configured to host and serve site files", "explanation": "Servers store files and send them to clients on request." }
+]
+}
+}

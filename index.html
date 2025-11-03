@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Study Quiz – Clean Slate</title>
+  <style>
+    /* ==========================
+       Minimal, readable styling
+       ========================== */
+    :root{
+      --bg: #0f1220;           /* deep slate */
+      --panel: #171b2e;        /* card bg */
+      --panel-2:#1f2440;       /* alt card */
+      --text:#e7ecff;          /* primary text */
+      --muted:#a8b2d1;         /* secondary text */
+      --accent:#7aa2ff;        /* primary accent */
+      --accent-2:#00d3a7;      /* secondary accent */
+      --danger:#ff6b6b;        /* wrong */
+      --ok:#38d996;            /* right */
+      --border:#2b3157;        /* borders */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+      color:var(--text); background:radial-gradient(1200px 1200px at 10% -10%, #1a2143, #0b0e1a 50%, #070912 100%), var(--bg);
+      display:flex; flex-direction:column; align-items:center; padding:24px;
+    }
+    .container{width:min(100%, 980px)}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px;
+    }
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow:var(--shadow)}
+    h1{margin:0; font-size: clamp(20px, 3.5vw, 28px)}
+    .card{
+      background:linear-gradient(180deg, var(--panel), var(--panel-2));
+      border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:var(--shadow);
+    }
+    .row{display:grid; grid-template-columns:1fr; gap:16px}
+    @media (min-width: 860px){ .row{ grid-template-columns: 320px 1fr } }
+
+    select, button, input[type="number"]{
+      background:#0c1022; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:15px; width:100%;
+    }
+    label{color:var(--muted); font-size:14px}
+    .stack{display:flex; flex-direction:column; gap:8px}
+    .muted{color:var(--muted)}
+    .pill{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted)}
+    .actions{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{cursor:pointer; background:var(--accent); color:#0a0d1a; border:none; border-radius:10px; padding:10px 14px; font-weight:600}
+    .btn.secondary{ background:#0c1022; color:var(--text); border:1px solid var(--border) }
+    .btn.ghost{ background:transparent; color:var(--muted); border:1px dashed var(--border) }
+    .btn[disabled]{opacity:.6; cursor:not-allowed}
+
+    .q-card{ display:flex; flex-direction:column; gap:12px }
+    .q-title{ font-size:18px; font-weight:700 }
+    .options{ display:flex; flex-direction:column; gap:8px }
+    .option{ border:1px solid var(--border); border-radius:12px; padding:10px 12px; cursor:pointer; background:#0c1022 }
+    .option input{ margin-right:10px }
+    .option.correct{ outline:2px solid var(--ok) }
+    .option.wrong{ outline:2px solid var(--danger) }
+
+    .progress{ height:10px; background:#0c1022; border-radius:999px; border:1px solid var(--border); overflow:hidden }
+    .bar{ height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); width:0% }
+
+    .result{ display:grid; gap:18px }
+    details.review{ border:1px solid var(--border); border-radius:12px; padding:12px; background:#0c1022 }
+    summary{ cursor:pointer }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; padding:2px 6px; border:1px solid var(--border); border-radius:6px; background:#0c1022; color:var(--muted) }
+
+    footer{ margin-top:16px; color:var(--muted); font-size:13px; text-align:center }
+    a{ color:var(--accent) }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Study Quiz</h1>
+          <div class="pill">Clean slate · Static HTML/CSS/JS (GitHub Pages ready)</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="row">
+      <section class="card">
+        <div class="stack">
+          <div class="stack">
+            <label for="moduleSelect">Module</label>
+            <select id="moduleSelect" aria-label="Select a module"></select>
+          </div>
+          <div class="stack">
+            <label for="questionCount">Questions per run (min 1, max per module)</label>
+            <input id="questionCount" type="number" inputmode="numeric" min="1" value="20" />
+          </div>
+          <div class="stack">
+            <label for="shuffleAnswers">
+              <input type="checkbox" id="shuffleAnswers" checked /> Shuffle answers
+            </label>
+            <label for="instantCheck">
+              <input type="checkbox" id="instantCheck" /> Check immediately (show correct/wrong per question)
+            </label>
+          </div>
+          <div class="actions">
+            <button id="startBtn" class="btn">Start quiz</button>
+            <button id="resetBtn" class="btn secondary" disabled>Reset</button>
+          </div>
+          <p class="muted">Tip: You can edit questions directly in this file inside the <span class="kbd">#quiz-data</span> block. Add new modules by following the same schema. No build tools or service workers are used.</p>
+        </div>
+      </section>
+
+      <section class="card" id="mainPanel" aria-live="polite">
+        <div class="stack" id="intro">
+          <p>Pick a module and hit <em>Start quiz</em>. You can run any number of questions (up to what the module provides). Everything here is client‑side and works on GitHub Pages.</p>
+          <ul>
+            <li>Keyboard: <span class="kbd">1–9</span> to pick answers, <span class="kbd">N</span> next, <span class="kbd">B</span> back, <span class="kbd">R</span> restart.</li>
+            <li>Review at the end shows all questions with your picks and the correct answers.</li>
+          </ul>
+        </div>
+        <div id="quiz" hidden></div>
+        <div id="results" hidden></div>
+      </section>
+    </div>
+
+    <footer>
+      <p>Made for GitHub Pages · No deps · MIT License</p>
+    </footer>
+  </div>
+
+  <!-- ==========================================
+       Data: add/modify modules and questions here
+       ========================================== -->
+  <script id="quiz-data" type="application/json">
+  {
+    "modules": [
+      {
+        "id": "html_css_basics",
+        "name": "Module 1 • HTML & CSS Basics",
+        "questions": [
+          {"q":"What does HTML stand for?","type":"mc","choices":["HyperText Markup Language","HighText Markdown Language","Hyperlinks and Text Markup Language","Home Tool Markup Language"],"answer":0,"ex":"HTML = HyperText Markup Language."},
+          {"q":"Which tag defines the most important heading?","type":"mc","choices":["<heading>","<h6>","<h1>","<title>"],"answer":2},
+          {"q":"Which element inserts a line break?","type":"mc","choices":["<lb>","<br>","<break>","<newline>"],"answer":1},
+          {"q":"Where should the <link rel=\"stylesheet\"> go?","type":"mc","choices":["Anywhere","Inside <body>","Inside <head>","After </html>"],"answer":2},
+          {"q":"Which CSS selector targets elements by id?","type":"mc","choices":[".id","#id","id{}","&id"],"answer":1},
+          {"q":"What is the default display of a <div>?","type":"mc","choices":["inline","block","inline-block","flex"],"answer":1},
+          {"q":"Which property sets the text color?","type":"mc","choices":["font-color","text-color","color","foreground"],"answer":2},
+          {"q":"Which attribute provides alternative text for images?","type":"mc","choices":["title","desc","alt","label"],"answer":2},
+          {"q":"Choose valid HTML5 semantic element:","type":"mc","choices":["<container>","<section>","<block>","<content>"],"answer":1},
+          {"q":"Which unit scales with root font-size?","type":"mc","choices":["em","rem","px","%"],"answer":1,"ex":"rem = root em; em is relative to the current element."},
+          {"q":"Best practice for multiple equal importance headings on a page:","type":"mc","choices":["Use many <h1>","One <h1> for page, use <h2>/<h3> for sections","Only <h6>","No headings"],"answer":1},
+          {"q":"Which meta tag improves mobile layout?","type":"mc","choices":["<meta charset> ","<meta viewport>","<meta mobile>","<meta screen>"],"answer":1},
+          {"q":"CSS to center a block horizontally:","type":"mc","choices":["text-align:center","margin: 0 auto","justify-content:center","left:50%"],"answer":1},
+          {"q":"Which property controls space inside the border?","type":"mc","choices":["margin","padding","gap","spacing"],"answer":1},
+          {"q":"What does CSS stand for?","type":"mc","choices":["Creative Style Sheets","Cascading Style Sheets","Colorful Style Syntax","Computer Styled Sections"],"answer":1},
+          {"q":"Which is not a valid CSS length?","type":"mc","choices":["px","cm","vw","ptx"],"answer":3},
+          {"q":"Which tag wraps the main page content?","type":"mc","choices":["<main>","<center>","<section>","<content>"],"answer":0},
+          {"q":"Accessible form labels require:","type":"mc","choices":["A placeholder","A name attribute","A <label> tied to the input id","Tabindex=0"],"answer":2},
+          {"q":"Which attribute opens a link in a new tab?","type":"mc","choices":["rel=\"new\"","open=\"_new\"","target=\"_blank\"","tab=\"new\""],"answer":2},
+          {"q":"Flexbox: center both axes in a container:","type":"mc","choices":["justify-content:center; align-items:center;","place-items:center;","text-align:center;","align-content:center;"],"answer":0}
+        ]
+      },
+      {
+        "id": "js_fundamentals",
+        "name": "Module 2 • JavaScript Fundamentals",
+        "questions": [
+          {"q":"Which keyword declares a block-scoped variable?","type":"mc","choices":["var","let","def","set"],"answer":1},
+          {"q":"What is the result of typeof null?","type":"mc","choices":["\"null\"","\"object\"","\"undefined\"","\"nil\""],"answer":1,"ex":"This is a historical quirk in JS."},
+          {"q":"Which is NOT falsy?","type":"mc","choices":["0","\"\"","[]","NaN"],"answer":2},
+          {"q":"Array method to create a new array with elements that pass a test:","type":"mc","choices":["forEach","map","filter","reduce"],"answer":2},
+          {"q":"Strict equality operator is:","type":"mc","choices":["==","===","=","!=="],"answer":1},
+          {"q":"JSON stands for:","type":"mc","choices":["Java Source Object Notation","JavaScript Object Notation","Joined Style Object Notation","Just Simple Object Notation"],"answer":1},
+          {"q":"Promise.then(...) returns:","type":"mc","choices":["Always undefined","A new promise","The original promise","A boolean"],"answer":1},
+          {"q":"Which keyword pauses inside an async function?","type":"mc","choices":["await","yield","pause","sleep"],"answer":0},
+          {"q":"How do you copy an array shallowly?","type":"mc","choices":["arr.copy()","arr.slice()","copy(arr)","arr.clone()"],"answer":1},
+          {"q":"Which converts a string to number?","type":"mc","choices":["Number(\"42\")","parseInt(\"42\",10)","+\"42\"","All of the above"],"answer":3},
+          {"q":"What does Array.map return length-wise?","type":"mc","choices":["Same length","Shorter","Longer","Always empty"],"answer":0},
+            {"q":"Which is NOT a primitive?","type":"mc","choices":["symbol","bigint","object","number"],"answer":2},
+          {"q":"Which triggers immediately after DOM is parsed?","type":"mc","choices":["window.load","DOMContentLoaded","beforeunload","visibilitychange"],"answer":1},
+          {"q":"Which creates a constant binding?","type":"mc","choices":["const","static","final","let!"],"answer":0},
+          {"q":"Spread syntax does what here: [...arr]?","type":"mc","choices":["Mutates arr","Copies elements","Sorts arr","Removes duplicates"],"answer":1},
+          {"q":"NaN === NaN evaluates to:","type":"mc","choices":["true","false"],"answer":1,"ex":"Use Number.isNaN to check for NaN."},
+          {"q":"What does \"use strict\" enable?","type":"mc","choices":["Type checking","Stricter parsing & errors","Minification","Faster GC"],"answer":1},
+          {"q":"Which method adds to the end of an array?","type":"mc","choices":["push","pop","shift","unshift"],"answer":0},
+          {"q":"What is a closure?","type":"mc","choices":["A function with access to outer scope after it returns","A class instance","A module import","A try/catch block"],"answer":0},
+          {"q":"Which prints to console?","type":"mc","choices":["print()","log()","console.log()","debug()"],"answer":2}
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <script>
+  // ================================================================
+  // Quiz App (vanilla JS, no build)
+  // - Safe DOM init
+  // - No service worker / caches (avoids previous addAll errors)
+  // - Clear state machine and keyboard controls
+  // - Easy data editing via #quiz-data JSON
+  // ================================================================
+  (function(){
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    // Elements (resolved after DOMContentLoaded to avoid null refs)
+    let moduleSelect, countInput, shuffleAnswers, instantCheck, startBtn, resetBtn,
+        introEl, quizEl, resultsEl, progressBar;
+
+    // App state
+    let DATA = null;
+    let currentModule = null;
+    let run = null; // { questions:[], index:0, answers:[], score:0 }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init(){
+      // Cache elements now that DOM exists
+      moduleSelect   = $('#moduleSelect');
+      countInput     = $('#questionCount');
+      shuffleAnswers = $('#shuffleAnswers');
+      instantCheck   = $('#instantCheck');
+      startBtn       = $('#startBtn');
+      resetBtn       = $('#resetBtn');
+      introEl        = $('#intro');
+      quizEl         = $('#quiz');
+      resultsEl      = $('#results');
+
+      // Load data from embedded JSON
+      try{
+        const raw = $('#quiz-data').textContent.trim();
+        DATA = JSON.parse(raw);
+      }catch(err){
+        alert('Failed to parse quiz data. Please check the JSON in #quiz-data.');
+        throw err;
+      }
+
+      // Populate modules
+      if(!DATA || !Array.isArray(DATA.modules) || DATA.modules.length === 0){
+        alert('No modules found. Add modules inside the #quiz-data block.');
+        return;
+      }
+      DATA.modules.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id; opt.textContent = `${m.name}`;
+        moduleSelect.appendChild(opt);
+      });
+
+      // Wire up controls
+      startBtn.addEventListener('click', startQuiz);
+      resetBtn.addEventListener('click', resetAll);
+      document.addEventListener('keydown', onKey);
+
+      // Render initial state
+      renderIntro();
+    }
+
+    function onKey(e){
+      // 1-9 to pick an option
+      if(quizEl && !quizEl.hidden){
+        const n = parseInt(e.key, 10);
+        if(!isNaN(n) && n > 0){
+          const options = $$('#options .option');
+          const idx = n - 1;
+          if(options[idx]) options[idx].click();
+        }
+        if(e.key.toLowerCase() === 'n') next();
+        if(e.key.toLowerCase() === 'b') prev();
+      }
+      if(e.key.toLowerCase() === 'r') resetAll();
+    }
+
+    function startQuiz(){
+      const modId = moduleSelect.value;
+      currentModule = DATA.modules.find(m => m.id === modId);
+      if(!currentModule){ alert('Module not found.'); return; }
+
+      const all = Array.from(currentModule.questions);
+      if(all.length === 0){ alert('This module has no questions.'); return; }
+
+      const max = all.length;
+      const requested = clamp(parseInt(countInput.value || '20', 10), 1, max);
+      const picked = shuffle(all).slice(0, requested).map(q => normalizeQuestion(q));
+
+      run = { questions: picked, index: 0, answers: new Array(picked.length).fill(null), score: 0 };
+
+      // UI state
+      startBtn.disabled = true; resetBtn.disabled = false; introEl.hidden = true; resultsEl.hidden = true; quizEl.hidden = false;
+      renderQuestion();
+    }
+
+    function resetAll(){
+      run = null;
+      startBtn.disabled = false; resetBtn.disabled = true;
+      resultsEl.hidden = true; quizEl.hidden = true; introEl.hidden = false;
+      $('#progress')?.remove();
+      renderIntro();
+    }
+
+    function renderIntro(){
+      // nothing fancy here; kept simple.
+    }
+
+    function normalizeQuestion(q){
+      // Ensure structure and shuffle answers if requested
+      const obj = {
+        q: String(q.q ?? ''),
+        type: q.type || 'mc',
+        choices: Array.isArray(q.choices) ? q.choices.slice() : [],
+        answer: typeof q.answer === 'number' ? q.answer : 0,
+        ex: q.ex ?? null
+      };
+      if(shuffleAnswers.checked) {
+        const original = obj.choices.map((c, i) => ({ c, i }));
+        const shuffled = shuffle(original);
+        obj.choices = shuffled.map(x => x.c);
+        obj.answer = shuffled.findIndex(x => x.i === obj.answer);
+      }
+      return obj;
+    }
+
+    function renderQuestion(){
+      const total = run.questions.length;
+      const i = clamp(run.index, 0, total-1);
+      const q = run.questions[i];
+
+      quizEl.innerHTML = '';
+
+      // Progress bar
+      const prog = document.createElement('div');
+      prog.id = 'progress'; prog.className = 'progress';
+      const bar = document.createElement('div'); bar.className = 'bar';
+      bar.style.width = `${((i)/total)*100}%`;
+      prog.appendChild(bar);
+      quizEl.appendChild(prog);
+
+      // Question card
+      const card = document.createElement('div'); card.className = 'q-card';
+      const title = document.createElement('div'); title.className='q-title';
+      title.textContent = `Q${i+1}/${total} · ${q.q}`;
+      card.appendChild(title);
+
+      const options = document.createElement('div'); options.id='options'; options.className='options';
+      q.choices.forEach((choice, idx) => {
+        const label = document.createElement('label'); label.className='option';
+        const input = document.createElement('input'); input.type='radio'; input.name='answer'; input.value=idx;
+        if(run.answers[i] === idx) input.checked = true;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(`${idx+1}. ${choice}`));
+        label.addEventListener('click', () => selectAnswer(idx));
+        options.appendChild(label);
+      });
+      card.appendChild(options);
+
+      const controls = document.createElement('div'); controls.className='actions';
+      const backBtn = button('Back', 'secondary', prev, i===0);
+      const nextBtn = button(i === total-1 ? 'Finish' : 'Next', '', next, false);
+      controls.append(backBtn, nextBtn);
+
+      if(instantCheck.checked && run.answers[i] !== null){
+        markAnswer(q, run.answers[i], options);
+      }
+
+      // Explanation area
+      const ex = document.createElement('div'); ex.className='muted'; ex.id='explain';
+      if(instantCheck.checked && run.answers[i] !== null && q.ex){
+        ex.textContent = q.ex;
+      }
+
+      quizEl.appendChild(card);
+      quizEl.appendChild(controls);
+      quizEl.appendChild(ex);
+    }
+
+    function button(text, variant, onClick, disabled=false){
+      const b = document.createElement('button'); b.className = 'btn' + (variant? ' ' + variant : ''); b.textContent = text; b.disabled = !!disabled; b.addEventListener('click', onClick); return b;
+    }
+
+    function selectAnswer(idx){
+      const i = run.index; const q = run.questions[i];
+      run.answers[i] = idx;
+      if(instantCheck.checked){
+        const options = $$('#options .option');
+        markAnswer(q, idx, options);
+      }
+    }
+
+    function markAnswer(q, idx, labels){
+      labels.forEach(l => l.classList.remove('correct','wrong'));
+      labels[q.answer]?.classList.add('correct');
+      if(idx !== q.answer){ labels[idx]?.classList.add('wrong'); }
+      const ex = $('#explain'); if(q.ex && ex){ ex.textContent = q.ex; }
+    }
+
+    function prev(){
+      if(!run) return;
+      run.index = Math.max(0, run.index-1);
+      renderQuestion();
+    }
+
+    function next(){
+      if(!run) return;
+      const i = run.index;
+      const answered = run.answers[i] !== null;
+      if(!answered){ alert('Pick an answer first.'); return; }
+
+      if(i < run.questions.length - 1){
+        run.index++;
+        renderQuestion();
+        return;
+      }
+      // Finish
+      computeScore();
+      showResults();
+    }
+
+    function computeScore(){
+      let score = 0;
+      run.questions.forEach((q, i) => { if(run.answers[i] === q.answer) score++; });
+      run.score = score;
+    }
+
+    function showResults(){
+      quizEl.hidden = true; resultsEl.hidden = false; resultsEl.innerHTML = '';
+      const total = run.questions.length; const pct = Math.round((run.score/total)*100);
+
+      const wrap = document.createElement('div'); wrap.className='result';
+      const h = document.createElement('h2'); h.textContent = `Score: ${run.score}/${total} (${pct}%)`;
+      wrap.appendChild(h);
+
+      const actions = document.createElement('div'); actions.className='actions';
+      const again = button('Restart', '', resetAll);
+      const reviewBtn = button('Review answers', 'secondary', () => {});
+      actions.append(again, reviewBtn);
+      wrap.appendChild(actions);
+
+      const details = document.createElement('details'); details.className='review';
+      const summary = document.createElement('summary'); summary.textContent = 'Open review';
+      details.appendChild(summary);
+
+      run.questions.forEach((q, i) => {
+        const block = document.createElement('div'); block.style.marginTop = '10px';
+        const title = document.createElement('div'); title.className='q-title';
+        const correct = run.answers[i] === q.answer;
+        title.textContent = `Q${i+1}. ${q.q}`;
+        const your = document.createElement('div');
+        your.innerHTML = `Your answer: <strong>${labelOf(q, run.answers[i]) ?? '—'}</strong>`;
+        const right = document.createElement('div');
+        right.innerHTML = `Correct answer: <strong>${labelOf(q, q.answer)}</strong>`;
+        if(q.ex){ const ex = document.createElement('div'); ex.className='muted'; ex.textContent = q.ex; block.append(title,your,right,ex); }
+        else{ block.append(title,your,right); }
+        block.style.borderTop = '1px solid var(--border)'; block.style.paddingTop='10px';
+        details.appendChild(block);
+      });
+
+      wrap.appendChild(details);
+      resultsEl.appendChild(wrap);
+    }
+
+    function labelOf(q, idx){
+      if(idx == null) return null;
+      return `${(idx+1)}. ${q.choices[idx]}`;
+    }
+
+    // Utils
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+    function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+  })();
+  </script>
+</body>
+</html>
